@@ -18,7 +18,6 @@ router.post('/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ name, email, password: hashedPassword });
         await newUser.save();
-
         return res.status(200).json({ message: "User created successfully!" });
     } catch (error) {
         return res.status(500).json({ message: "An error occurred. Please try again later.", error: error});
@@ -66,7 +65,6 @@ router.put('/update/:id', authMiddleware ,async (req, res) => {
     try {
         const {id} = req.params
         const {name, email, password, newPassword} = req.body;
-        console.log(name, email, password, newPassword)
 
         const user = await User.findById(id);
         if(!user){
@@ -78,7 +76,6 @@ router.put('/update/:id', authMiddleware ,async (req, res) => {
                 return res.status(400).json({message: "Password incorrect"})
             }
             const hashedPassword = await bcrypt.hash(newPassword, 10);
-            console.log("here")
             await User.findByIdAndUpdate(id, {name, email, password: hashedPassword}, {new: false})
         } else {
             await User.findByIdAndUpdate(id, {name, email}, {new: false})
