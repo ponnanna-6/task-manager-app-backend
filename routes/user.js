@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt')
 const User = require('../schemas/user.schema')
 const router = express.Router()
 const jwt = require('jsonwebtoken')
+const { authMiddleware } = require('../middlewares/auth')
 
 //register user
 router.post('/register', async (req, res) => {
@@ -46,11 +47,11 @@ router.post('/login', async (req, res)=>{
     }
 })
 
-//Fetch user by email
-router.get('/:email', async (req, res) => {
+//Fetch user by id
+router.get('/id/:id', authMiddleware, async (req, res) => {
     try {
-        const {email} = req.params
-        const users = await User.find({email}).select('-password -_id -__v');
+        const {id} = req.params
+        const users = await User.find({_id : id}).select('-password -__v');
         if(!users.length){
             return res.status(400).json({message:"User not found"});
         }
@@ -60,5 +61,32 @@ router.get('/:email', async (req, res) => {
     }
 });
 
+//update user data
+router.put('/update/:id', authMiddleware ,async (req, res) => {
+    try {
+        const {id} = req.params
+        const {name, email, password, newPassword} = req.body;
+        console.log(name, email, password, newPassword)
+
+        const user = await User.findById(id);
+        if(!user){
+            return res.status(400).json({message: "User not found for id: "+ id});
+        }
+        if(newPassword.length) {
+            const compare = await bcrypt.compare(password, user.password)
+            if(!compare){
+                return res.status(400).json({message: "Password incorrect"})
+            }
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            console.log("here")
+            await User.findByIdAndUpdate(id, {name, email, password: hashedPassword}, {new: false})
+        } else {
+            await User.findByIdAndUpdate(id, {name, email}, {new: false})
+        }
+        res.status(200).json({ message: "User updated successfully!"})
+    } catch (error) {
+        return res.status(500).json({ message: "An error occurred. Please try again later.", error: error});
+    }
+});
 
 module.exports = router
