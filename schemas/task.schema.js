@@ -14,7 +14,7 @@ const taskSchema = mongoose.Schema({
         type: String,
         required: false
     },
-    checkList: {
+    checklist: {
         type: [String],
         required: true
     },

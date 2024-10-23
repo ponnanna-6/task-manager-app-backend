@@ -8,6 +8,7 @@ router.post('/add', authMiddleware, async (req, res) => {
     try {
         const id = req.user
         const {title, priority, assignedTo, checklist, dueDate} = req.body;
+
         if(!title || !priority || !checklist){
             return res.status(400).json({message: "Please fill all the fields"});
         }
@@ -24,12 +25,25 @@ router.post('/add', authMiddleware, async (req, res) => {
 router.get('/user', authMiddleware, async (req, res) => {
     try {
         const id = req.user
-        console.log(id)
         const tasks = await Task.find({createdBy : id}).select('-__v');
         if(!tasks.length){
             return res.status(400).json({message:"Tasks not found"});
         }
         res.status(200).json(tasks);
+    } catch (err) {
+        res.status(400).json(err);
+    }
+});
+
+//creeate a function to get task data by id
+router.get('/id/:id', authMiddleware, async (req, res) => {
+    try {
+        const {id} = req.params
+        const tasks = await Task.find({_id : id}).select('-__v');
+        if(!tasks.length){
+            return res.status(400).json({message:"Task not found"});
+        }
+        res.status(200).json(tasks[0]);    
     } catch (err) {
         res.status(400).json(err);
     }
@@ -60,5 +74,22 @@ router.delete('/delete/:id', authMiddleware, async (req, res) => {
         res.status(400).json(err);
     }
 });
+
+//update task status
+router.put('/status/:id', async (req, res)=>{
+    try {
+        const {id} = req.params
+        const {taskStatus} = req.body;  
+        console.log(req.body) 
+        console.log(taskStatus, id)
+        if(!taskStatus){
+            return res.status(400).json({message: "Please fill all the fields"});
+        }     
+        await Task.findByIdAndUpdate(id, {taskStatus}, {new: false})
+        return res.status(200).json({ message: "Task status updated successfully!" });
+    } catch (err) {
+        res.status(400).json(err);
+    }
+})
 
 module.exports = router
