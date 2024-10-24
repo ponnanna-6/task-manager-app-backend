@@ -6,6 +6,7 @@ const cors = require('cors')
 const indexRouter = require('./routes/index')
 const userRouter = require('./routes/user')
 const taskRouter = require('./routes/task')
+const publicRouter = require('./routes/public')
 
 dotenv.config()
 const app = express()
@@ -19,6 +20,7 @@ app.use(bodyParser.urlencoded({extended:true}))
 app.use('/api/v1/', indexRouter)
 app.use('/api/v1/user/', userRouter)
 app.use('/api/v1/task/', taskRouter)
+app.use('/api/v2/public/', publicRouter)
 
 app.listen(process.env.PORT, (req, res)=>{
     console.log(`Server started on port ${process.env.PORT}`)
