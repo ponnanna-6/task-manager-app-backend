@@ -8,14 +8,24 @@ const taskSchema = mongoose.Schema({
     priority: {
         type: String,
         required: true,
-        enum : ["HIGH PRIORITY", "MODERATE PRIORITY", "LOW PRIORITY"]
+        enum: ["HIGH PRIORITY", "MODERATE PRIORITY", "LOW PRIORITY"]
     },
     assignedTo: {
         type: String,
         required: false
     },
     checklist: {
-        type: [String],
+        type: [{
+            checked: {
+                type: Boolean,
+                required: true,
+                default: false
+            },
+            message: {
+                type: String,
+                required: true
+            }
+        }],
         required: true
     },
     dueDate: {
@@ -25,7 +35,7 @@ const taskSchema = mongoose.Schema({
     taskStatus: {
         type: String,
         default: "TODO",
-        enum : ["BACKLOG", "TODO", "IN PROGRESS", "DONE"]
+        enum: ["BACKLOG", "TODO", "IN PROGRESS", "DONE"]
     },
     accessList: {
         type: [mongoose.Schema.ObjectId],

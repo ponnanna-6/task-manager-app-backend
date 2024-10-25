@@ -133,13 +133,24 @@ router.put('/status/:id', async (req, res) => {
     try {
         const { id } = req.params
         const { taskStatus } = req.body;
-        console.log(req.body)
-        console.log(taskStatus, id)
-        if (!taskStatus) {
-            return res.status(400).json({ message: "Please fill all the fields" });
-        }
         await Task.findByIdAndUpdate(id, { taskStatus }, { new: false })
         return res.status(200).json({ message: "Task status updated successfully!" });
+    } catch (err) {
+        res.status(400).json(err);
+    }
+})
+
+//update checkList
+router.put('/checkList/:id', async (req, res) => {
+    try {
+        const { id } = req.params
+        const { checklist } = req.body;
+        
+        if (!checklist) {
+            return res.status(400).json({ message: "Checklist is required" });
+        }
+        await Task.findByIdAndUpdate(id, { checklist }, { new: false })
+        return res.status(200).json({ message: "Checklist updated successfully!" });
     } catch (err) {
         res.status(400).json(err);
     }
