@@ -61,9 +61,9 @@ router.get('/id/:id', authMiddleware, async (req, res) => {
 });
 
 //update user data
-router.put('/update/:id', authMiddleware ,async (req, res) => {
+router.put('/update', authMiddleware ,async (req, res) => {
     try {
-        const {id} = req.params
+        const id = req.user;
         const {name, email, password, newPassword} = req.body;
 
         const user = await User.findById(id);
