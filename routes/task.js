@@ -7,17 +7,17 @@ const Task = require('../schemas/task.schema')
 router.post('/add', authMiddleware, async (req, res) => {
     try {
         const id = req.user
-        const {title, priority, assignedTo, checklist, dueDate} = req.body;
+        const { title, priority, assignedTo, checklist, dueDate } = req.body;
 
-        if(!title || !priority || !checklist){
-            return res.status(400).json({message: "Please fill all the fields"});
+        if (!title || !priority || !checklist) {
+            return res.status(400).json({ message: "Please fill all the fields" });
         }
-        const newTask = new Task({title, priority, assignedTo, checklist, dueDate, createdBy: id});
+        const newTask = new Task({ title, priority, assignedTo, checklist, dueDate, createdBy: id });
         await newTask.save();
         return res.status(200).json({ message: "Task created successfully!" });
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ message: "An error occurred. Please try again later.", error: error});
+        return res.status(500).json({ message: "An error occurred. Please try again later.", error: error });
     }
 });
 
@@ -26,7 +26,7 @@ router.get('/user', authMiddleware, async (req, res) => {
     try {
         const id = req.user;
         const { filter } = req.query;
-        
+
         const today = new Date();
         let startDate, endDate;
 
@@ -52,8 +52,12 @@ router.get('/user', authMiddleware, async (req, res) => {
             endDate.setHours(23, 59, 59, 999); // Set end time to 23:59:59
         }
 
-        // Build the query with optional date range
-        let query = { createdBy: id };
+        let query = {
+            $or: [
+                { createdBy: id },
+                { accessList: id }
+            ]
+        };
 
         if (filter === 'week' || filter === 'month' || filter === 'today') {
             query = {
@@ -62,11 +66,16 @@ router.get('/user', authMiddleware, async (req, res) => {
                     { dueDate: { $exists: false } },
                     { dueDate: "" },
                     { dueDate: { $gte: startDate, $lte: endDate } }
+                ],
+                $or: [
+                    { createdBy: id },
+                    { accessList: id }
                 ]
             };
         }
 
         const tasks = await Task.find(query).select('-__v');
+
 
         if (!tasks.length) {
             return res.status(400).json({ message: "Tasks not found" });
@@ -82,26 +91,26 @@ router.get('/user', authMiddleware, async (req, res) => {
 //creeate a function to get task data by id
 router.get('/id/:id', authMiddleware, async (req, res) => {
     try {
-        const {id} = req.params
-        const tasks = await Task.find({_id : id}).select('-__v');
-        if(!tasks.length){
-            return res.status(400).json({message:"Task not found"});
+        const { id } = req.params
+        const tasks = await Task.find({ _id: id }).select('-__v');
+        if (!tasks.length) {
+            return res.status(400).json({ message: "Task not found" });
         }
-        res.status(200).json(tasks[0]);    
+        res.status(200).json(tasks[0]);
     } catch (err) {
         res.status(400).json(err);
     }
 });
 
 //update task
-router.put('/edit/:id', async (req, res)=>{
+router.put('/edit/:id', async (req, res) => {
     try {
-        const {id} = req.params
-        const {title, priority, assignedTo, checklist, dueDate, taskStatus} = req.body;   
-        if(!title || !priority || !checklist){
-            return res.status(400).json({message: "Please fill all the fields"});
-        }     
-        await Task.findByIdAndUpdate(id, {title, priority, assignedTo, checklist, dueDate, taskStatus}, {new: false})
+        const { id } = req.params
+        const { title, priority, assignedTo, checklist, dueDate, taskStatus } = req.body;
+        if (!title || !priority || !checklist) {
+            return res.status(400).json({ message: "Please fill all the fields" });
+        }
+        await Task.findByIdAndUpdate(id, { title, priority, assignedTo, checklist, dueDate, taskStatus }, { new: false })
         return res.status(200).json({ message: "Task updated successfully!" });
     } catch (err) {
         res.status(400).json(err);
@@ -110,8 +119,8 @@ router.put('/edit/:id', async (req, res)=>{
 
 //delete task   
 router.delete('/delete/:id', authMiddleware, async (req, res) => {
-    try {   
-        const {id} = req.params
+    try {
+        const { id } = req.params
         await Task.findByIdAndDelete(id)
         return res.status(200).json({ message: "Task deleted successfully!" });
     } catch (err) {
@@ -120,16 +129,16 @@ router.delete('/delete/:id', authMiddleware, async (req, res) => {
 });
 
 //update task status
-router.put('/status/:id', async (req, res)=>{
+router.put('/status/:id', async (req, res) => {
     try {
-        const {id} = req.params
-        const {taskStatus} = req.body;  
-        console.log(req.body) 
+        const { id } = req.params
+        const { taskStatus } = req.body;
+        console.log(req.body)
         console.log(taskStatus, id)
-        if(!taskStatus){
-            return res.status(400).json({message: "Please fill all the fields"});
-        }     
-        await Task.findByIdAndUpdate(id, {taskStatus}, {new: false})
+        if (!taskStatus) {
+            return res.status(400).json({ message: "Please fill all the fields" });
+        }
+        await Task.findByIdAndUpdate(id, { taskStatus }, { new: false })
         return res.status(200).json({ message: "Task status updated successfully!" });
     } catch (err) {
         res.status(400).json(err);
