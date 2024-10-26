@@ -37,11 +37,6 @@ const taskSchema = mongoose.Schema({
         default: "TODO",
         enum: ["BACKLOG", "TODO", "IN PROGRESS", "DONE"]
     },
-    accessList: {
-        type: [mongoose.Schema.ObjectId],
-        ref: "User",
-        required: false
-    },
     createdBy: {
         type: mongoose.Schema.ObjectId,
         ref: "User",

@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { authMiddleware } = require('../middlewares/auth')
 const Task = require('../schemas/task.schema')
+const Board = require('../schemas/board.schema')
 
 //Add task route
 router.post('/add', authMiddleware, async (req, res) => {
@@ -52,30 +53,36 @@ router.get('/user', authMiddleware, async (req, res) => {
             endDate.setHours(23, 59, 59, 999); // Set end time to 23:59:59
         }
 
-        let query = {
+        const boards = await Board.find({
             $or: [
-                { createdBy: id },
+                { ownerId: id },
                 { accessList: id }
             ]
-        };
+        }).select('ownerId');
 
+        if (!boards || boards.length === 0) {
+            return res.status(404).json({ message: 'No boards found for this user' });
+        }
+
+        const ownerIds = boards.map(board => board.ownerId);
+
+        let query = {
+            $and: [
+                { createdBy: { $in: ownerIds } },
+            ]
+        };
+        
         if (filter === 'week' || filter === 'month' || filter === 'today') {
-            query = {
-                ...query,
+            query.$and.push({
                 $or: [
                     { dueDate: { $exists: false } },
                     { dueDate: "" },
                     { dueDate: { $gte: startDate, $lte: endDate } }
-                ],
-                $or: [
-                    { createdBy: id },
-                    { accessList: id }
                 ]
-            };
+            });
         }
 
         const tasks = await Task.find(query).select('-__v');
-
 
         if (!tasks.length) {
             return res.status(400).json({ message: "Tasks not found" });

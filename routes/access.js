@@ -1,6 +1,7 @@
 const { authMiddleware } = require('../middlewares/auth');
 const TaskModel = require('../schemas/task.schema');
 const UserModel = require('../schemas/user.schema');
+const BoardModel = require('../schemas/board.schema');
 const express = require('express');
 
 const router = express.Router()
@@ -16,22 +17,15 @@ router.post('/boards/share', authMiddleware, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const tasks = await TaskModel.find({ createdBy: ownerId });
-        if (!tasks || tasks.length === 0) {
-            return res.status(404).json({ message: 'No tasks found for this board owner' });
+        const board = await BoardModel.findOne({ ownerId });
+        if (!board) {
+            return res.status(404).json({ message: 'Board not found' });
         }
-
-        const tasksUpdated = [];
-        for (let task of tasks) {
-            if (!task.accessList.includes(user._id)) {
-                task.accessList.push(user._id);
-                tasksUpdated.push(task.save());
-            }
+        if (board.accessList.includes(user._id)) {
+            return res.status(400).json({ message: 'User already has access to the board' });
         }
-
-        await Promise.all(tasksUpdated);
-
-        res.status(200).json({ message: 'Access granted to all tasks successfully' });
+        await BoardModel.findByIdAndUpdate(board._id, { $push: { accessList: user._id } }, { new: false });
+        res.status(200).json({ message: 'Board access granted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }

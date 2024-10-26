@@ -2,18 +2,13 @@ const express = require('express')
 const router = express.Router()
 const { authMiddleware } = require('../middlewares/auth')
 const Task = require('../schemas/task.schema')
+const Board = require('../schemas/board.schema')
 
 
 //get all tasks created by a user
 router.get('/', authMiddleware, async (req, res) => {
     try {
         const id = req.user;
-        let query = {
-            $or: [
-                { createdBy: id },
-                { accessList: id }
-            ]
-        };
 
         const priority = {
             "HIGH PRIORITY": 0,
@@ -28,6 +23,25 @@ router.get('/', authMiddleware, async (req, res) => {
             "IN PROGRESS": 0,
             "DONE": 0
         }
+
+        const boards = await Board.find({
+            $or: [
+                { ownerId: id },
+                { accessList: id }
+            ]
+        }).select('ownerId');
+
+        if (!boards || boards.length === 0) {
+            return res.status(404).json({ message: 'No boards found for this user' });
+        }
+
+        const ownerIds = boards.map(board => board.ownerId);
+
+        const query = {
+            $or: [
+                { createdBy: { $in: ownerIds } }
+            ]
+        };
 
         const tasks = await Task.find(query).select('-__v');
 
