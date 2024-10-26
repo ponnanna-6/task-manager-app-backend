@@ -68,7 +68,12 @@ router.get('/user', authMiddleware, async (req, res) => {
 
         let query = {
             $and: [
-                { createdBy: { $in: ownerIds } },
+                {
+                    $or: [
+                        { createdBy: { $in: ownerIds } }, // Tasks created by board owners
+                        { 'assignedTo._id': id }          // Tasks assigned to the current user
+                    ]
+                }
             ]
         };
         

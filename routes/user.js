@@ -89,4 +89,16 @@ router.put('/update', authMiddleware ,async (req, res) => {
     }
 });
 
+
+router.get('/all', authMiddleware, async (req, res) => {
+    try {
+        const users = await User.find().select('email');
+        if(!users.length){
+            return res.status(400).json({message:"No user found"});
+        }
+        res.status(200).json(users);
+    } catch (err) {
+        res.status(400).json(err);
+    }
+})
 module.exports = router

@@ -11,7 +11,17 @@ const taskSchema = mongoose.Schema({
         enum: ["HIGH PRIORITY", "MODERATE PRIORITY", "LOW PRIORITY"]
     },
     assignedTo: {
-        type: String,
+        type: [{
+            _id: {
+                type: mongoose.Schema.ObjectId,
+                ref: "User",
+                required: true
+            },
+            email: {
+                type: String,
+                required: true
+            }
+        }],
         required: false
     },
     checklist: {
