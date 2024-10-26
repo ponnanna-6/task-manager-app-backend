@@ -9,6 +9,7 @@ const taskRouter = require('./routes/task')
 const publicRouter = require('./routes/public')
 const acessRouter = require('./routes/access')
 const analyticsRouter = require('./routes/analytics')
+const boardRouter = require('./routes/board')
 
 dotenv.config()
 const app = express()
@@ -24,6 +25,7 @@ app.use('/api/v1/user/', userRouter)
 app.use('/api/v1/task/', taskRouter)
 app.use('/api/v1/access/', acessRouter)
 app.use('/api/v1/analytics/', analyticsRouter)
+app.use('/api/v1/board/', boardRouter)
 
 app.use('/api/v2/public/', publicRouter)
 

@@ -10,6 +10,9 @@ const BoardSchema = new mongoose.Schema({
             ref: 'User'
         }
     ],
+    emailList: [
+        { type: String }
+    ],
 });
 
 const BoardModel = mongoose.model('Board', BoardSchema);
