@@ -46,6 +46,7 @@ router.get('/', authMiddleware, async (req, res) => {
         const tasks = await Task.find(query).select('-__v');
 
         if (!tasks.length) {
+            console.log("tasks not found")
             return res.status(400).json({ message: "Tasks not found" });
         }
 
@@ -56,10 +57,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
         tasks.forEach(task => {
             if (task.dueDate) {
-                const dueDate = new Date(task.dueDate);
-                if (dueDate < new Date()) {
-                    priority["DUE DATE"] += 1
-                }
+                priority["DUE DATE"] += 1  
             }
         })
         
